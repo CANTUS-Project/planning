@@ -1,10 +1,13 @@
-CANTUS Server Application
-======================================
+CANTUS Server Application: Abbott
+===============================================================================
 
 Name
 -------
 
-Maybe for this we can stick with "CSA: CANTUS Server Application" because, on the one hand, it clearly describes what the application is, on the other hand it's a short and convenient acronym for URLs and the like, and on the third hand it allows us to have interesting branding because of the acronym collisions with "Canadian Standards Association" and "Community-Supported Agriculture."
+I suggest we call the server application "Abbott," which is a catchy name that appears early in the alphabet.
+Considering the specific religious nature of objects in the CANTUS database, and the Server Application's role as the steward of that information, the term "abbott" makes sense to me.
+Moreover, it's not used for a notable software project (just an IRC bot that happens also to be written in Python, though with Twisted rather than Tornado).
+In any case, nobody would ever confuse the two projects, and if they do, reading the first "about" sentence should clear things up.
 
 Requirements
 ------------------
@@ -19,6 +22,7 @@ Thus the functional requirements:
 - communicate with the CANTUS MySQL server, using the pre-existing schemas created by Drupal;
 - communicate with other databases in the CANTUS network using their HTTP API;
 - allow fast client-side experience;
+- produce hyperlinks to Web apps/pages that hold images of a chant;
 
 Additional functional restrictions:
 - will not serve static content;
@@ -32,6 +36,7 @@ Additional technical requirements:
 
 Elaboration of Functional Requirements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Inbound and outbound client-side communication is in JSON. This format is still gaining popularity for similar tasks. JSON is text-based so we can easily cache results in a wide variety of ways. JSON is easy to manipulate from Python. JSON also allows us to do data manipulation in the server program, specifying a client-side-friendly API that provides data in the format that's fastest for client applications to parse.
 
 Query a Solr server that will have indexed the CANTUS network (and beyond?) We don't have the resources or requirements to justify writing a purpose-built search engine, so we will use Solr, which has been proven capable of meeting our needs by its use in similar projects. Furthermore, because Solr indexes content, we can ask it to index all the databases in the CANTUS network, so they may all be searched with equal efficiency.
@@ -41,6 +46,11 @@ Communicate with the CANTUS MySQL server, using the pre-existing schemas created
 Communicate with other databases in the CANTUS network using their HTTP API. Since we'll (hopefully!) be able to index all the databases in the CANTUS network, we will (hopefully!) be able to provide content from those databases too. This will be more difficult because we'll have to use their HTTP API rather than their database, meaning there is a greater chance of failure. However, we should be able to cache results to some extent---it's not as though these chants are changing on a daily basis!
 
 Allow fast client-side experience. One of the problems with the existing Drupal database application is that users perceive it to be slow. Although much of the experiential speed will be the responsibility of the client application, we can also take measures to both allow the client to do less processing, and also to return partial data so that users can start browsing (for example) search results even before all the results are ready.
+
+Produce hyperlinks to Web apps/pages that hold images of a chant. There are at least some extant
+resources, like those of the CANTUS Ultimus project, that will allow us to provide clients with a
+hyperlink directly to the page a chant is on, hopefully even to a more exact position of that chant
+on the page.
 
 Elaboration of Functional Restrictions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,7 +75,12 @@ Implementation
 
 This is less concrete at the moment.
 
-We're going to use Python 3.4 because I already know it, and there are better solutions in Python than in C++. I think we're going to use either Twisted or Tornado, though I'm not yet sure which one is more suitable for our needs---since Tornado seems to be faster and allows for involving Twisted, we may choose to combine them. For interacting with the Solr server, there are libraries for that, but I'm not sure whether we should use one or just deal with parsing the data ourselves. We'll have to consider whether the library's additional complexity is worth the additional dependency. To interact with the MySQL server, I'm not sure yet what we'll do; I'm not opposed to learning and writing SQL directly because it would probably be a very useful skill, but there may be better (faster, more robust and well-tested) solutions out there. Notably, anything that will allow us to connect to MySQL asynchronously will be a win.
+We're going to use Python 3.4 because I already know it, and there are better solutions in Python than in C++.
+We're going to use Tornado because it seems like it should be faster than Django, and we won't really need the templating or database-interaction features that Django offers (weird, right?)
+I haven't yet decided how we'll interact with the Solr server (direct HTTP queries or through a library).
+To interact with the MySQL server, for the amount of this that will actually be required, I think it'll be fine to just use something lik SQLAlchemy and write it by hand.
+Hopefully that can be done asynchronously too.
+
+How shall the Solr database update itself with new and modified content?
 
 I would also like to target the application to a specific operating system and version, rather than writing a generic Python app. This would allow us, for example, to use distribution packages for the Python dependencies, which are more likely to be updated with bug- and security-fix patches without breaking compatibility than we will have the energy to test. Moreover, hopefully I'll be able to deploy a Linux system with SystemD, which offers watchdog, daemon-restarting, and sandboxing.
-
